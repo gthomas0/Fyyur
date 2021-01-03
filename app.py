@@ -5,6 +5,7 @@
 import json
 import dateutil.parser
 import arrow
+import sys
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_migrate import Migrate
@@ -47,7 +48,6 @@ class Venue(db.Model):
     state = db.Column(db.String(120), nullable=False)
     address = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120), nullable=False)
-    image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     genres = db.Column(db.ARRAY(db.String), nullable=False)
     website = db.Column(db.String(120))
@@ -211,6 +211,28 @@ def create_venue_form():
 def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
+    error = False
+
+    try:
+        """
+        name = request.form.get('name')
+        city = request.form.get('city')
+        state = request.form.get('state')
+        address = request.form.get('address')
+        phone = request.form.get('phone')
+        image_link = request.form.get('image_link')
+        facebook_link = request.form.get('facebook_link')
+        genres = request.form.getlist('genres')
+        seeking_description = request.form.get('seeking_description')
+        seeking_talent = request.form.get('seeking_talent', False)
+        website = request.form.get('website')
+        """
+        venue = Venue(**request.form)
+        
+    except:
+        error = True
+        db.session.rollback()
+        print(sys.exc_info())
 
     # on successful db insert, flash success
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
