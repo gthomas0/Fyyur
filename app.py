@@ -4,6 +4,7 @@
 
 import json
 import dateutil.parser
+import arrow
 import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for
 from flask_migrate import Migrate
@@ -28,11 +29,14 @@ migrate = Migrate(app, db)
 # Models.
 #----------------------------------------------------------------------------#
 
-show = db.Table('show',
-    db.Column('artist_id', db.Integer, db.ForeignKey('artist.id'), primary_key=True),
-    db.Column('venue_id', db.Integer, db.ForeignKey('venue.id'), primary_key=True),
-    db.Column('start_time', db.DateTime, primary_key=True),
-)
+class Show(db.Model):
+    __tablename__ = 'show'
+
+    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), primary_key=True)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), primary_key=True)
+    start_time = db.Column(db.DateTime, primary_key=True)
+    artist = db.relationship('Artist', back_populates='venues')
+    venue = db.relationship('Venue', back_populates='artists')
 
 class Venue(db.Model):
     __tablename__ = 'venue'
@@ -50,7 +54,7 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean, nullable=False)
     seeking_description = db.Column(db.String(500))
     image_link = db.Column(db.String(500), nullable=False)
-    artists = db.relationship('Artist', secondary=show, back_populates='venues')
+    artists = db.relationship('Show', back_populates='venue')
 
 
 class Artist(db.Model):
@@ -67,7 +71,7 @@ class Artist(db.Model):
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, nullable=False)
     seeking_description = db.Column(db.String(500))
-    venues = db.relationship('Venue', secondary=show, back_populates='artists')
+    venues = db.relationship('Show', back_populates='artist')
 
 
 #----------------------------------------------------------------------------#
@@ -98,32 +102,35 @@ def index():
 
 @app.route('/venues')
 def venues():
-    venues = Venue.query.all()
-    print(venues)
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
-    data=[{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-        "id": 1,
-        "name": "The Musical Hop",
-        "num_upcoming_shows": 0,
-        }, {
-        "id": 3,
-        "name": "Park Square Live Music & Coffee",
-        "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-        "id": 2,
-        "name": "The Dueling Pianos Bar",
-        "num_upcoming_shows": 0,
-        }]
-    }]
-    return render_template('pages/venues.html', areas=data);
+    # List for storing venues data
+    data = list()
+
+    # Go through each distinct city,state location
+    city_state = db.session.query(Venue.city, Venue.state).distinct()
+    for cs in city_state:
+        
+        # List for storing venues associated to a specific city,state location
+        venues = list()
+        
+        # Go through all venues associated to a specific city,state location
+        venue_list = db.session.query(Venue.id, Venue.name).filter(Venue.city == cs.city, Venue.state == cs.state).all()
+        for vl in venue_list:
+            venue_data = {
+                'id': vl.id,
+                'name': vl.name,
+                'num_upcoming_shows': Show.query.filter(Show.venue_id == vl.id, Show.start_time > str(arrow.utcnow())).count()
+            }
+            venues.append(venue_data)
+
+        city_data = {
+            'city': cs.city,
+            'state': cs.state,
+            'venues': venues,
+        }
+        data.append(city_data)
+
+    print(data)
+    return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
