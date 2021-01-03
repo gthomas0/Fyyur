@@ -28,6 +28,12 @@ migrate = Migrate(app, db)
 # Models.
 #----------------------------------------------------------------------------#
 
+show = db.Table('show',
+    db.Column('artist_id', db.Integer, db.ForeignKey('artist.id'), primary_key=True),
+    db.Column('venue_id', db.Integer, db.ForeignKey('venue.id'), primary_key=True),
+    db.Column('start_time', db.DateTime, primary_key=True),
+)
+
 class Venue(db.Model):
     __tablename__ = 'venue'
 
@@ -39,11 +45,12 @@ class Venue(db.Model):
     phone = db.Column(db.String(120), nullable=False)
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    genres = db.Column(db.String(120), nullable=False)
+    genres = db.Column(db.ARRAY(db.String), nullable=False)
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, nullable=False)
     seeking_description = db.Column(db.String(500))
     image_link = db.Column(db.String(500), nullable=False)
+    artists = db.relationship('Artist', secondary=show, back_populates='venues')
 
 
 class Artist(db.Model):
@@ -54,19 +61,14 @@ class Artist(db.Model):
     city = db.Column(db.String(120), nullable=False)
     state = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120), nullable=False)
-    genres = db.Column(db.String(120), nullable=False)
+    genres = db.Column(db.ARRAY(db.String), nullable=False)
     image_link = db.Column(db.String(500), nullable=False)
     facebook_link = db.Column(db.String(120))
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, nullable=False)
     seeking_description = db.Column(db.String(500))
+    venues = db.relationship('Venue', secondary=show, back_populates='artists')
 
-
-show = db.Table('show',
-    db.Column('artist_id', db.Integer, db.ForeignKey('artist.id'), primary_key=True),
-    db.Column('venue_id', db.Integer, db.ForeignKey('venue.id'), primary_key=True),
-    db.Column('start_time', db.DateTime, primary_key=True),
-)
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -96,6 +98,8 @@ def index():
 
 @app.route('/venues')
 def venues():
+    venues = Venue.query.all()
+    print(venues)
     # TODO: replace with real venues data.
     #       num_shows should be aggregated based on number of upcoming shows per venue.
     data=[{
