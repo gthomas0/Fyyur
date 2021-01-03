@@ -152,7 +152,7 @@ def show_venue(venue_id):
     venue = Venue.query.get(venue_id)
 
     # Get past and upcoming shows
-    shows = Show.query.join(Artist).filter(Show.venue_id == venue.id)
+    shows = Show.query.join(Artist).filter(Show.venue_id == venue_id)
     past_shows = shows.filter(Show.start_time < str(arrow.utcnow())).all()
     upcoming_shows = shows.filter(Show.start_time > str(arrow.utcnow())).all()
 
