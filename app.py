@@ -51,7 +51,7 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
     genres = db.Column(db.ARRAY(db.String), nullable=False)
     website = db.Column(db.String(120))
-    seeking_talent = db.Column(db.Boolean, nullable=False)
+    seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String(500))
     image_link = db.Column(db.String(500), nullable=False)
     artists = db.relationship('Show', back_populates='venue')
@@ -69,7 +69,7 @@ class Artist(db.Model):
     image_link = db.Column(db.String(500), nullable=False)
     facebook_link = db.Column(db.String(120))
     website = db.Column(db.String(120))
-    seeking_venue = db.Column(db.Boolean, nullable=False)
+    seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String(500))
     venues = db.relationship('Show', back_populates='artist')
 
@@ -228,6 +228,7 @@ def create_venue_submission():
         website = request.form.get('website')
         """
         venue = Venue(**request.form)
+        
         
     except:
         error = True

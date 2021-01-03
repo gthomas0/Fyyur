@@ -39,6 +39,10 @@ def upgrade():
     op.alter_column('venue', 'genres',
                 type_=postgresql.ARRAY(sa.VARCHAR()),
                 postgresql_using='genres::character varying[]')
+    op.alter_column('venue', 'seeking_talent',
+                type_=sa.Boolean(), server_default=sa.text('FALSE'))
+    op.alter_column('artist', 'seeking_venue',
+                type_=sa.Boolean(), server_default=sa.text('FALSE'))
     # ### end Alembic commands ###
 
 
@@ -56,5 +60,9 @@ def downgrade():
     op.alter_column('venue', 'genres',
                 type_=sa.VARCHAR(length=120),
                 postgresql_using='genres::character varying(120)')
+    op.alter_column('venue', 'seeking_talent',
+                type_=sa.Boolean(), server_default=None)
+    op.alter_column('artist', 'seeking_venue',
+                type_=sa.Boolean(), server_default=None)
     op.drop_table('show')
     # ### end Alembic commands ###
