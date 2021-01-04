@@ -30,48 +30,7 @@ migrate = Migrate(app, db)
 # Models.
 #----------------------------------------------------------------------------#
 
-class Show(db.Model):
-    __tablename__ = 'show'
-
-    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), primary_key=True)
-    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), primary_key=True)
-    start_time = db.Column(db.DateTime, primary_key=True)
-    artist = db.relationship('Artist', back_populates='venues')
-    venue = db.relationship('Venue', back_populates='artists')
-
-class Venue(db.Model):
-    __tablename__ = 'venue'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    city = db.Column(db.String(120), nullable=False)
-    state = db.Column(db.String(120), nullable=False)
-    address = db.Column(db.String(120), nullable=False)
-    phone = db.Column(db.String(120), nullable=False)
-    facebook_link = db.Column(db.String(120))
-    genres = db.Column(db.ARRAY(db.String), nullable=False)
-    website = db.Column(db.String(120))
-    seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
-    seeking_description = db.Column(db.String(500))
-    image_link = db.Column(db.String(500), nullable=False)
-    artists = db.relationship('Show', back_populates='venue')
-
-
-class Artist(db.Model):
-    __tablename__ = 'artist'
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    city = db.Column(db.String(120), nullable=False)
-    state = db.Column(db.String(120), nullable=False)
-    phone = db.Column(db.String(120), nullable=False)
-    genres = db.Column(db.ARRAY(db.String), nullable=False)
-    image_link = db.Column(db.String(500), nullable=False)
-    facebook_link = db.Column(db.String(120))
-    website = db.Column(db.String(120))
-    seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
-    seeking_description = db.Column(db.String(500))
-    venues = db.relationship('Show', back_populates='artist')
+from models import *
 
 
 #----------------------------------------------------------------------------#
@@ -502,18 +461,16 @@ def create_artist_submission():
 def shows():
     # displays list of shows at /shows
     data = list()
-    shows = Show.query.all()
+    shows = db.session.query(Show).join(Artist).join(Venue).all()
     
     for show in shows:
-        venue_data = db.session.query(Venue.name).filter(Venue.id == show.venue_id).first()
-        artist_data = db.session.query(Artist.name, Artist.image_link).filter(Artist.id == show.artist_id).first()
 
         sd = {
             'venue_id': show.venue_id,
-            'venue_name': venue_data.name,
+            'venue_name': show.venue.name,
             'artist_id': show.artist_id,
-            'artist_name': artist_data.name,
-            'artist_image_link': artist_data.image_link,
+            'artist_name': show.artist.name,
+            'artist_image_link': show.artist.image_link,
             'start_time': f'{str(show.start_time)}Z',
         }
         data.append(sd)
