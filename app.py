@@ -222,7 +222,7 @@ def create_venue_submission():
             'facebook_link': request.form.get('facebook_link'),
             'genres': request.form.getlist('genres'),
             'seeking_description': request.form.get('seeking_description'),
-            'seeking_talent': request.form.get('seeking_talent', False),
+            'seeking_talent': True if request.form.get('seeking_talent') else False,
             'website': request.form.get('website'),
         }
         venue = Venue(**parsed_form)
@@ -422,7 +422,7 @@ def edit_venue_submission(venue_id):
             'facebook_link': request.form.get('facebook_link'),
             'genres': request.form.getlist('genres'),
             'seeking_description': request.form.get('seeking_description'),
-            'seeking_talent': request.form.get('seeking_talent', False),
+            'seeking_talent': True if request.form.get('seeking_talent') else False,
             'website': request.form.get('website'),
         }
         venue.name = parsed_form.get('name')
@@ -434,7 +434,7 @@ def edit_venue_submission(venue_id):
         venue.facebook_link = parsed_form.get('facebook_link')
         venue.genres = parsed_form.get('genres')
         venue.seeking_description = parsed_form.get('seeking_description')
-        venue.seeking_venue = parsed_form.get('seeking_venue')
+        venue.seeking_talent = parsed_form.get('seeking_talent')
         venue.website = parsed_form.get('website')
         db.session.commit()
     except:
@@ -473,7 +473,7 @@ def create_artist_submission():
             'facebook_link': request.form.get('facebook_link'),
             'genres': request.form.getlist('genres'),
             'seeking_description': request.form.get('seeking_description'),
-            'seeking_venue': request.form.get('seeking_venue', False),
+            'seeking_venue': True if request.form.get('seeking_venue') else False,
             'website': request.form.get('website'),
         }
         artist = Artist(**parsed_form)
